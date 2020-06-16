@@ -5,7 +5,7 @@ import controlP5.ControlKey;
 import controlP5.ControlP5;
 import controlP5.Group;
 import processing.core.PApplet;   //Download processing add
-import processing.core.*;   //Download processing add
+import processing.core.*;   //Download processing addd
 
 import java.awt.*;
 

@@ -1,0 +1,13 @@
+{
+  "/world": {
+    "min": 100,
+    "max": 500,
+    "value": 200
+  },
+  "/radio": {"arrayValue": "[F@4f4040e3"},
+  "/hello": {
+    "min": 100,
+    "max": 500,
+    "value": 100
+  }
+}
