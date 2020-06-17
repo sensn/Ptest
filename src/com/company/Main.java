@@ -14,15 +14,22 @@ public class Main extends PApplet{
     int angle = 0;
     private PApplet sketch;
 
+
     ControlP5 cp5;
     Accordion accordion;
 Color c = new Color(123) ;
+
+
+    int w=200; //non fullscreen width
+    int h=200; //non fullscreen height
+    boolean fullscreen=false; //fullscreen
 
     @Override
     public void settings() {
       //  size(500, 500);
        // size(640, 360);
         size(1280, 720);
+
         //size(displayWidth, displayHeight);
       //  fullScreen(0);
     }
@@ -32,7 +39,8 @@ Color c = new Color(123) ;
         fill(102);
 
         gui();
-
+        //frame.setResizable(true);
+        surface.setResizable(true);
 
     }
     void gui() {
@@ -152,7 +160,20 @@ public    void radio(int theC) {
        System.out.println(c.getRGB());
 
     }
+   public void mouseReleased() {
+        if (fullscreen) {
+           // frame.setSize(w,h);
+            surface.setSize(w,h);
+            fullscreen=false;
 
+        } else {
+            //frame.setSize(displayWidth,displayHeight);
+            surface.setSize(displayWidth,displayHeight);
+            //fullScreen(0);
+            fullscreen=true;
+
+        }
+    }
 
 
     //______DRAW_____
@@ -160,6 +181,11 @@ public    void radio(int theC) {
          // background(64);
           background(c.getRGB());
           //ellipse(mouseX, mouseY, 20, 20);
+
+
+
+
+
 
         // Draw only when mouse is pressed
         if (mousePressed == true) {
@@ -186,7 +212,9 @@ public    void radio(int theC) {
         String[] processingArgs = {"Main"};
         Main mySketch = new Main();
 
+
         PApplet.runSketch(processingArgs, mySketch);
+
     }
 
 
