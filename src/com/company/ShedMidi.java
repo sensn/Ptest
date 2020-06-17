@@ -1,19 +1,50 @@
 package com.company;
+import jdk.jshell.execution.Util;
+import processing.core.*;
+//import themidibus.MidiBus;
+import themidibus.*; //Import the library
 
-import themidibus.MidiBus;
-
-import javax.sound.midi.MidiMessage; //Import the MidiMessage classes http://java.sun.com/j2se/1.5.0/docs/api/javax/sound/midi/MidiMessage.html
-import javax.sound.midi.SysexMessage;
-import javax.sound.midi.ShortMessage;
+import javax.sound.midi.*;
+import java.io.File;
+import java.io.IOException;
+import java.sql.SQLOutput;
 
 
 public class ShedMidi {
     MidiBus myBus; // The MidiBus
     byte[] buffer1 = new byte[3];
 
-    MidiBus.list(); // List all available Midi devices on STDOUT. This will show each device's index and name.
-    myBus = new MidiBus(this, 0, 0); // Create a new MidiBus object
+    File file = new File("./MYPROPHET.sf2");
+    Soundbank soundbank = MidiSystem.getSoundbank(file);
 
+   // Soundbank soundfont = MidiSystem.getSoundbank(("FluidR3_GM.sf2").getInputStream());
+   // Sequencer sequencer = MidiSystem.getSequencer();
+    Synthesizer synthesizer = MidiSystem.getSynthesizer();
+    Receiver synthRcvr = synthesizer.getReceiver();;
+    // List all available Midi devices on STDOUT. This will show each device's index and name.
+    //myBus = new MidiBus(this, 0, 0); // Create a new MidiBus object
+    ShortMessage a = new ShortMessage();
+    public ShedMidi() throws MidiUnavailableException, InvalidMidiDataException, IOException {
+
+        synthesizer.open();
+
+        Soundbank soundbank = MidiSystem.getSoundbank(file);
+        synthesizer.loadAllInstruments(soundbank);
+      // synthRcvr = synthesizer.getReceiver();
+
+
+ //
+   MidiBus.list();
+
+        myBus = new MidiBus(this, 0, 3);    //!!!
+       // myBus = new MidiBus(this, -1, "Java Sound Synthesizer");
+    }
+
+
+    public void sendMidiR(int thenote, int thevelocity, int thechannel) {
+
+
+    }
 
 
     public void sendMidi(int thenote, int thevelocity, int thechannel) {
@@ -28,8 +59,14 @@ public class ShedMidi {
         int offset = 0;
         // post is non-blocking
         try {
-            inputPort.send(buffer, offset, numBytes);
+            //inputPort.send(buffer, offset, numBytes);
+            //myBus.sendNoteOn(thechannel, thenote, thevelocity); // Send a Midi noteOn
+
+            a.setMessage(144, thechannel,  thenote, thevelocity);
+            synthRcvr.send(a,0);          //TODO
+
             //println("data sent");
+            System.out.println("CHANNEL: "+thechannel );
         }
         catch (Exception e) {
           //  println("error sending midi data");
@@ -47,7 +84,11 @@ public class ShedMidi {
         int offset = 0;
         // post is non-blocking
         try {
-            inputPort.send(buffer, offset, numBytes);
+           // inputPort.send(buffer, offset, numBytes);
+          //  myBus.sendNoteOff(thechannel, thenote, 0); // Send a Midi nodeOff
+
+            a.setMessage(0x90, thechannel,  thenote, 0);
+            synthRcvr.send(a,0);          //TODO
            // println("data sent");
         }
         catch (Exception e) {
@@ -64,11 +105,15 @@ public class ShedMidi {
         int offset = 0;
         // post is non-blocking
         try {
-            inputPort.send(buffer, offset, numBytes);
+         //   inputPort.send(buffer, offset, numBytes);
+            myBus.sendMessage(buffer);
            // println("data sent");
+            System.out.println( "PRDCHANGE");
         }
         catch (Exception e) {
          //   println("error sending midi data");
+            System.out.println( "ERROR PRGCHANGE");
+
         }
     }
 
@@ -84,11 +129,18 @@ public class ShedMidi {
         buffer[numBytes++] = (byte)0;
         buffer[numBytes++] = (byte)(191+thechannel);
         buffer[numBytes++] = (byte)theprg;
+
+        //   https://docs.oracle.com/javase/7/docs/api/javax/sound/midi/MidiMessage.html
+        // MidiMessage msg=new MidiMessage();
+        //MidiEvent msg = new MidiEvent(buffer,7);
+       // msg.getMessage(buffer,7);
         int offset = 0;
         // post is non-blocking
         try {
-            inputPort.send(buffer, offset, numBytes);
+            //inputPort.send(buffer, offset, numBytes);
+            myBus.sendMessage(buffer);
            // println("data sent");
+            System.out.println("BANK: " + thebank +"Prg: " +theprg + "Channel:" +thechannel );
         }
         catch (Exception e) {
           //  println("error sending midi data");
@@ -106,7 +158,8 @@ public class ShedMidi {
         int offset = 0;
         // post is non-blocking
         try {
-            inputPort.send(buffer, offset, numBytes);
+           // inputPort.send(buffer, offset, numBytes);
+            myBus.sendMessage(buffer);
            // println("data sent");
         }
         catch (Exception e) {
@@ -132,7 +185,8 @@ public class ShedMidi {
         int offset = 0;
         // post is non-blocking
         try {
-            inputPort.send(buffer, offset, numBytes);
+            //inputPort.send(buffer, offset, numBytes);
+            myBus.sendMessage(buffer);
          //   println("data sent");
         }
         catch (Exception e) {
@@ -149,7 +203,10 @@ public class ShedMidi {
 
         // post is non-blocking
         try {
-            inputPort.send(buffer1, 0, 3);
+           // inputPort.send(buffer1, 0, 3);
+            //myBus.sendMessage(buffer1);
+            a.setMessage(176, thechannel,  123, 0);
+            synthRcvr.send(a,0);          //TODO
           //  println("data sent");
         }
         catch (Exception e) {
@@ -167,7 +224,8 @@ public class ShedMidi {
         int offset = 0;
         // post is non-blocking
         try {
-            inputPort.send(buffer, offset, numBytes);
+            //inputPort.send(buffer, offset, numBytes);
+            myBus.sendMessage(buffer);
            // println("data sent");
         }
         catch (Exception e) {
@@ -184,7 +242,8 @@ public class ShedMidi {
         int offset = 0;
         // post is non-blocking
         try {
-            inputPort.send(buffer, offset, numBytes);
+            //inputPort.send(buffer, offset, numBytes);
+            myBus.sendMessage(buffer);
             //println("data sent");
         }
         catch (Exception e) {

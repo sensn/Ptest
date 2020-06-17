@@ -16,7 +16,16 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.IOException;
 //
+import themidibus.*; //Import the library
+
+import javax.sound.midi.InvalidMidiDataException;
+import javax.sound.midi.MidiMessage;
+import javax.sound.midi.MidiUnavailableException;
+import javax.sound.midi.ShortMessage;
+
+//
 public class Main extends PApplet{
+    MidiBus myBus; // The MidiBus
 
     int angle = 0;
     private PApplet sketch;
@@ -95,6 +104,7 @@ public class Main extends PApplet{
        // size(640, 360);
         //size(displayWidth, displayHeight);
        fullScreen(2);
+
     }
     public void setup() {
         background(102);
@@ -110,8 +120,18 @@ public class Main extends PApplet{
         myHouse = new House();
         tablesetup();
         wtablesetup();
-        println("setup m");
-        shedMidi = new ShedMidi();
+        println("setup MIDI");
+
+        try {
+            shedMidi = new ShedMidi();
+        } catch (MidiUnavailableException e) {
+            e.printStackTrace();
+        } catch (InvalidMidiDataException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
 //SHEDMIDI_PLACE
         for (int i = 0; i < 96; i++) {
             noteStartTimes[i] = i * cellLength;
@@ -238,7 +258,7 @@ public class Main extends PApplet{
     // ==========================================
     public void startseq() {
         if (start) {
-           // shedMidi.sendMidiStart();    //TODO HERE
+           shedMidi.sendMidiStart();    //TODO HERE
           //  MainActivity.mysetplaying(start);    //TODO HERE
             thread("playSequence");
             //thread ("worker2");
@@ -299,7 +319,7 @@ public class Main extends PApplet{
     //                MainActivity.mysetbpm(ms);      //!!!  // TODO SetSWING
         // ms = 60000/thebpm;
         mms = ((ms / 1000.0f) / 4.0f);
-        cellLength = (long) (mms * 1000000000L);
+        cellLength = (long) (mms * 10000000000L);
         for (int i = 0; i < 96; i++) {
             noteStartTimes[i] = i * cellLength;
         }
@@ -395,7 +415,7 @@ public class Main extends PApplet{
         for (int j = 0; j < numchannels; j++) {
             myHouse.rooms[j].vol = PApplet.parseInt(map(myHouse.rooms[j].volume, bblock,(height-bblock-bblock), 127, 0));
             if (myHouse.rooms[j].vol > 127) myHouse.rooms[j].vol=127;
-        //    shedMidi.sendMidiVol((j+1),myHouse.rooms[j].vol); //TODO HERE
+           shedMidi.sendMidiVol((j+1),myHouse.rooms[j].vol); //TODO HERE
             println(myHouse.rooms[j].volume + "VOLUME");
             println(myHouse.rooms[j].vol + "VOL");
         }
@@ -403,7 +423,7 @@ public class Main extends PApplet{
     public void allrel(){
         for (int j = 0; j < numchannels; j++) {
             myHouse.rooms[j].rel = PApplet.parseInt(map(myHouse.rooms[j].release, bblock,(height-bblock-bblock), 127, 0));
-         //   shedMidi.sendMidiRel((j+1),myHouse.rooms[j].rel);   //TODO HERE
+            shedMidi.sendMidiRel((j+1),myHouse.rooms[j].rel);   //TODO HERE
         }
     }
 
@@ -420,7 +440,7 @@ public class Main extends PApplet{
         // buffer1[2] = (byte) (mybuffer[2]);
         // post is non-blocking
         try {
-          //  shedMidi.inputPort.send(mybuffer, 0, 3); //TODO HERE
+            //shedMidi.inputPort.send(mybuffer, 0, 3); //TODO HERE
             // println("data sent");
         }
         catch (Exception e) {
@@ -464,22 +484,23 @@ public class Main extends PApplet{
             if (System.nanoTime() > startTime +cellLength) {
                 startTime = System.nanoTime();
 
-                // allnotesoff();
-                for (int j = 0; j < 10; j++) {
+                 allnotesoff();
+              /*  for (int j = 0; j < 10; j++) {
                     buffer1[0] = (byte)(176 + j+1); //Channel
                     buffer1[1] = (byte)(123);
                     buffer1[2] = (byte)(0);
                     // post is non-blocking
                     try {
                        // shedMidi.inputPort.send(buffer1, 0, 3);   //TODO HERE
+
                         // println("data sent");
                     }
                     catch (Exception e) {
                         //println("error sending midi data");
                     }
 
-                }
-
+                }*/
+//myHouse.checknotes();
                 for (int x = 0; x < tick.length; x++) {
                     if (tick[x]== index){
                         buffer[0] = (byte)(0x90 + channel[x]-1); //Channel
@@ -489,7 +510,11 @@ public class Main extends PApplet{
                         // post is non-blocking
                         try {
                            // shedMidi.inputPort.send(buffer, 0, 3);   //TODO SEND HERE THEMIDIBUS
-                            // println("data sent");
+                            shedMidi.sendMidi(notenum[x], velo[x], channel[x]);    //TODO
+                           // shedMidi.myBus.sendMessage(buffer);
+
+                             //println("TRIGGER");
+                          //  shedMidi.sendMidi();
                         }
                         catch (Exception e) {
                             //println("error sending midi data");
@@ -649,13 +674,14 @@ public class Main extends PApplet{
 
                 for (int x = 0; x < tick.length; x++) {
                     if (tick[x] == index) {
-                        //  buffer[0] = (byte)(0x90 + channel[x]-1); //Channel
-                        //  buffer[1] = notenum[x];
-                        //  buffer[2] = velo[x];
+                          buffer[0] = (byte)(0x90 + channel[x]-1); //Channel
+                          buffer[1] = (byte) notenum[x];
+                          buffer[2] = (byte) velo[x];
 
                         // post is non-blocking
                         try {
-                         //   shedMidi.inputPort.send(buffer, 0, 3);    //TODO
+                         //  shedMidi.inputPort.send(buffer, 0, 3);    //TODO
+                           shedMidi.sendMidi(notenum[x], velo[x], channel[x]);    //TODO
                             // println("data sent");
                         } catch (Exception e) {
                             //println("error sending midi data");
@@ -887,7 +913,7 @@ public class Main extends PApplet{
 
         public void allnotesoff () {
             for (int j = 0; j < numchannels; j++) {
-              //  shedMidi.sendMidialloff(j + 1);    //TODO
+                shedMidi.sendMidialloff(j + 1);    //TODO
             }
             //for (int j = 0; j < numchannels; j++) {
             // for (int i = 0; i < 127; i++) {
@@ -1219,13 +1245,13 @@ public class Main extends PApplet{
 
                     if (myHouse.rooms[i].buttons[86].on == true) {
                         myHouse.rooms[mychannel - 1].prg += 1;
-                        //shedMidi.sendMidiBank(mychannel, myHouse.rooms[mychannel - 1].bank, myHouse.rooms[mychannel - 1].prg);   //TODO HERE
+                        shedMidi.sendMidiBank(mychannel, myHouse.rooms[mychannel - 1].bank, myHouse.rooms[mychannel - 1].prg);   //TODO HERE
                         myHouse.rooms[i].buttons[86].on = false;
                     }
 
                     if (myHouse.rooms[i].buttons[87].on == true) {
                         myHouse.rooms[mychannel - 1].prg -= 1;
-                      //  shedMidi.sendMidiBank(mychannel, myHouse.rooms[mychannel - 1].bank, myHouse.rooms[mychannel - 1].prg);   //TODO HERE
+                        shedMidi.sendMidiBank(mychannel, myHouse.rooms[mychannel - 1].bank, myHouse.rooms[mychannel - 1].prg);   //TODO HERE
                         myHouse.rooms[i].buttons[87].on = false;
                     }
 
@@ -1267,13 +1293,13 @@ public class Main extends PApplet{
 
                     if (myHouse.rooms[i].buttons[94].on == true) {
                         myHouse.rooms[mychannel - 1].bank += 1;
-                      //  shedMidi.sendMidiBank(mychannel, myHouse.rooms[mychannel - 1].bank, myHouse.rooms[mychannel - 1].prg);  //TODO
+                       shedMidi.sendMidiBank(mychannel, myHouse.rooms[mychannel - 1].bank, myHouse.rooms[mychannel - 1].prg);  //TODO
                         myHouse.rooms[i].buttons[94].on = false;
                     }
 
                     if (myHouse.rooms[i].buttons[95].on == true) {
                         myHouse.rooms[mychannel - 1].bank -= 1;
-                       // shedMidi.sendMidiBank(mychannel, myHouse.rooms[mychannel - 1].bank, myHouse.rooms[mychannel - 1].prg);  //TODO
+                        shedMidi.sendMidiBank(mychannel, myHouse.rooms[mychannel - 1].bank, myHouse.rooms[mychannel - 1].prg);  //TODO
                         myHouse.rooms[i].buttons[95].on = false;
                     }
 
@@ -1949,7 +1975,7 @@ public class Main extends PApplet{
                     if (m1val != m1val1) {
                         myHouse.rooms[mychannel - 1].vol = m1val;
                         // transposeit(m1val);
-                     //   shedMidi.sendMidiVol(mychannel, m1val); //TODO
+                        shedMidi.sendMidiVol(mychannel, m1val); //TODO
                         m1val1 = m1val;
                     }
                 }
@@ -1959,7 +1985,7 @@ public class Main extends PApplet{
                     if (m1val != m1val1) {
                         myHouse.rooms[mychannel - 1].rel = m1val;
                         //// transposeit(m1val);
-                      //  shedMidi.sendMidiRel(mychannel, m1val);       //TODO
+                       shedMidi.sendMidiRel(mychannel, m1val);       //TODO
                         m1val1 = m1val;
                     }
                 }
@@ -2347,7 +2373,7 @@ public class Main extends PApplet{
             for (int i = 0; i < numchannels; i++) {
                 myHouse.rooms[i].bank = table.getInt(i + 1 * tabcentry, "Bank" + str(i + 1));
                 myHouse.rooms[i].prg = table.getInt(i + 1 * tabcentry, "Program" + str(i + 1));
-               // shedMidi.sendMidiBank(i + 1, myHouse.rooms[i].bank, myHouse.rooms[i].prg);   //TODO
+                shedMidi.sendMidiBank(i + 1, myHouse.rooms[i].bank, myHouse.rooms[i].prg);   //TODO
             }
 
             for (int i = 0; i < numchannels; i++) {
