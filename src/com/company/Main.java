@@ -6,6 +6,7 @@ import processing.data.Table;
 import processing.data.TableRow;
 
 //
+import java.awt.*;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.ArrayList;
@@ -28,6 +29,11 @@ import controlP5.*;
 //
 
 public class Main extends PApplet{
+    //
+    int w=640; //non fullscreen width
+    int h=360; //non fullscreen height
+   // boolean fullscreen=false; //fullscreen
+
     MidiBus myBus; // The MidiBus
 //
     ControlP5 cp5;
@@ -111,13 +117,75 @@ public class Main extends PApplet{
     @Override
     public void settings() {
       //  size(500, 500);
+        w=640;
+        h=360;
+       size(w, h);
        // size(640, 360);
-       // size(640, 360);
-        //size(displayWidth, displayHeight);
-       fullScreen(2);
+       // size(displayWidth, displayHeight);
+      // fullScreen(2);
+
+
         getpath();
 
     }
+    public void pre() {
+        //if (mouseReleased())
+        if (w != width || h != height) {
+            // Sketch window has resized
+            w = width;
+            h = height;
+            println("RESIZE EVENT");
+            bblock=w/21;
+
+            for (int x = 0; x < numchannels; x++) {
+                bbuttons[x].setX((bblock * 1.2f) + bblock + bblock * (1 * x), (bblock / 2) + bblock * 10.4f, bblock * 0.9f, bblock * 0.9f);
+            }
+            for (int x = 0; x < 8; x++) {
+
+                cbuttons[x].setX((bblock * 1.2f) + 4 * bblock + bblock * (x), (bblock / 2) + bblock * 8, bblock * 0.9f, bblock * 0.9f);
+                dbuttons[x].setX((bblock * 1.2f) + 4 * bblock + bblock * (x), (bblock / 2) + bblock * 9, bblock * 0.9f, bblock * 0.9f);
+            }
+            ebuttons[0].setX((bblock * 1.2f) + 2 * bblock + bblock, (bblock / 2) + bblock * 8, bblock * 0.9f, bblock * 0.9f);
+            ebuttons[1].setX((bblock * 1.2f) + 12 * bblock + bblock, (bblock / 2) + bblock * 8, bblock * 0.9f, bblock * 0.9f);
+            ebuttons[2].setX((bblock * 1.2f) + 12 * bblock + bblock, (bblock / 2) + bblock * 9, bblock * 0.9f, bblock * 0.9f);
+            ebuttons[3].setX((bblock * 1.2f) + 1 * bblock, (bblock / 2) + bblock * 8, bblock * 0.9f, bblock * 0.9f);
+
+
+            for (int i = 0; i < myHouse.rooms.length; i++) {
+                int mc = 0;
+                for (int y = 0; y < 5; y++) {
+                    for (int x = 0; x < 16; x++) {
+
+                        myHouse.rooms[i].buttons[mc].setX((bblock * 1.2f) + bblock * x, (bblock / 2) + bblock * y, bblock * 0.9f, bblock * 0.9f);
+                        mc += 1;
+                    }
+                }
+                for (int x = 0; x < 8; x++) {
+                    myHouse.rooms[i].buttons[x + 80].setX((bblock * 1.2f) + bblock * (2 * x), (bblock / 2) + bblock * 5.5f, bblock * 0.9f, bblock * 0.9f);
+                }
+                for (int x = 0; x < 8; x++) {
+                    myHouse.rooms[i].buttons[x + 88].setX((bblock * 1.2f) + bblock * (2 * x), (bblock / 2) + bblock * 6.7f, bblock * 0.9f, bblock * 0.9f);
+                }
+                for (int y = 0; y < 5; y++) {
+                    myHouse.rooms[i].buttons[y + 96].setX((bblock * 0.125f), (bblock / 2) + bblock * y, bblock * 0.9f, bblock * 0.9f);
+                }
+                myHouse.rooms[i].instances[0].setX((bblock * 1.5f) + bblock * (15.7f), bblock, bblock, bblock);
+                myHouse.rooms[i].instances[1].setX((bblock * 1.5f) + bblock * (16.7f), bblock, bblock, bblock);
+                myHouse.rooms[i].instances[2].setX((bblock * 1.5f) + bblock * (17.7f), bblock, bblock, bblock);
+                myHouse.rooms[i].instances[3].setX((bblock * 1.5f) + bblock * (18.7f), bblock, bblock, bblock);
+            }
+            instances1[0].setX((bblock/2) + bblock * 10.4f,(bblock*1.2f) + bblock + bblock * (10),(bblock*1.2f) + bblock + bblock * (10), bblock,bblock+bblock*15.5f);
+          //  block=w/21;
+
+           // redraw();
+
+            // reset();
+            //  ws = "Size = " +w + " x " + h + " pixels";
+            // Do what you need to do here
+        }
+    }
+
+
    public  void gui() {
 
         cp5 = new ControlP5(this);
@@ -133,7 +201,7 @@ public class Main extends PApplet{
         .setOpen(false)
         .setItemHeight((int) (bblock))
 
-       // .setVisible(false)
+        .setVisible(false)
         ;
 
         customize(d1); // customize the first list
@@ -226,121 +294,132 @@ public class Main extends PApplet{
 
 
     public void setup() {
-        background(102);
-        noStroke();
-        fill(102);
-
-//MSEQ SETUP
-
-        frameRate(24);
-        bblock = width / 21;
-        gui();   //CP5
-        check();  //labels for buttons
-
-        myHouse = new House();
-        tablesetup();
-        wtablesetup();
-        println("setup MIDI");
-
-        try {
-            shedMidi = new ShedMidi();
-        } catch (MidiUnavailableException e) {
-            e.printStackTrace();
-        } catch (InvalidMidiDataException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-//SHEDMIDI_PLACE
-        for (int i = 0; i < 96; i++) {
-            noteStartTimes[i] = i * cellLength;
-        }
-        ms = 60000 / bpm;
-        bpm = 120;
-        ms = 125;
-
-        //INIT
-        instances1[0] = new Test1((bblock/2) + bblock * 10.4f,(bblock*1.2f) + bblock + bblock * (10),(bblock*1.2f) + bblock + bblock * (10), bblock,bblock+bblock*15.5f);
-        // CHANNEL BUTTONS
-        for (int x = 0; x < numchannels; x++) {
-            bbuttons[x] = new BButton((bblock * 1.2f) + bblock + bblock * (1 * x), (bblock / 2) + bblock * 10.4f, bblock * 0.9f, bblock * 0.9f);
-        }
-        for (int x = 0; x < 8; x++) {
-
-            cbuttons[x] = new CButton((bblock * 1.2f) + 4 * bblock + bblock * (x), (bblock / 2) + bblock * 8, bblock * 0.9f, bblock * 0.9f);
-            dbuttons[x] = new DButton((bblock * 1.2f) + 4 * bblock + bblock * (x), (bblock / 2) + bblock * 9, bblock * 0.9f, bblock * 0.9f);
-        }
-        ebuttons[0] = new EButton((bblock * 1.2f) + 2 * bblock + bblock, (bblock / 2) + bblock * 8, bblock * 0.9f, bblock * 0.9f, "save", "savePattern");
-        ebuttons[1] = new EButton((bblock * 1.2f) + 12 * bblock + bblock, (bblock / 2) + bblock * 8, bblock * 0.9f, bblock * 0.9f, "save", "saveFile");
-        ebuttons[2] = new EButton((bblock * 1.2f) + 12 * bblock + bblock, (bblock / 2) + bblock * 9, bblock * 0.9f, bblock * 0.9f, "load", "loadFile");
-        ebuttons[3] = new EButton((bblock * 1.2f) + 1 * bblock, (bblock / 2) + bblock * 8, bblock * 0.9f, bblock * 0.9f, "chord", "chord");
-        myHouse.rooms[0].name = "Channel 1";
-        myHouse.rooms[0].wifi = true;
-        myHouse.rooms[0].isDefined = true;
-
-        myHouse.rooms[1].name = "Channel 2";
-        myHouse.rooms[1].wifi = false;
-        myHouse.rooms[1].isDefined = true;
-        myHouse.rooms[1].colour = color(5, 0, 255);
-
-        myHouse.rooms[2].name = "Channel 3";
-        myHouse.rooms[2].wifi = false;
-        myHouse.rooms[2].isDefined = true;
-        myHouse.rooms[2].windows = 5;
-        myHouse.rooms[2].colour = color(5, 210, 255);
-
-        myHouse.rooms[3].name = "Channel 4";
-        myHouse.rooms[3].wifi = false;
-        myHouse.rooms[3].isDefined = true;
-        myHouse.rooms[3].colour = color(5, 0, 255);
-
-        myHouse.rooms[4].name = "Channel 5";
-        myHouse.rooms[4].wifi = false;
-        myHouse.rooms[4].isDefined = true;
-        myHouse.rooms[4].colour = color(5, 0, 255);
-
-        myHouse.rooms[5].name = "Channel 6";
-        myHouse.rooms[5].wifi = false;
-        myHouse.rooms[5].isDefined = true;
-        myHouse.rooms[5].colour = color(5, 0, 255);
-
-        myHouse.rooms[6].name = "Channel 7";
-        myHouse.rooms[6].wifi = false;
-        myHouse.rooms[6].isDefined = true;
-        myHouse.rooms[6].colour = color(5, 0, 255);
-
-        myHouse.rooms[7].name = "Channel 8";
-        myHouse.rooms[7].wifi = false;
-        myHouse.rooms[7].isDefined = true;
-        myHouse.rooms[7].colour = color(5, 0, 255);
-
-        myHouse.rooms[8].name = "Channel 9";
-        myHouse.rooms[8].wifi = false;
-        myHouse.rooms[8].isDefined = true;
-        myHouse.rooms[8].colour = color(5, 0, 255);
-
-        myHouse.rooms[9].name = "Channel 10";
-        myHouse.rooms[9].wifi = false;
-        myHouse.rooms[9].isDefined = true;
-        myHouse.rooms[9].colour = color(5, 0, 255);
+        w = width;
+        h = height;
+        surface.setSize(w,h);
+        surface.setResizable(true);
+        registerMethod("pre", this);
 
 
-        for (int i = 0; i < myHouse.rooms.length; i++) {
-            myHouse.rooms[i].buttons[88].x = (bblock * 0.125f);
-            myHouse.rooms[i].buttons[88].y = (bblock / 2) + bblock * 10.4f;
-        }
-
-        buttonset();
-        updateall();
-        saveempty();
         ddata = ByteBuffer.allocateDirect(3);
         stepbuf = ByteBuffer.allocateDirect(1);
         mstat = ByteBuffer.allocateDirect(1);
 
+        reset();
+    }
+public void reset(){
+    background(102);
+    noStroke();
+    fill(102);
 
+//MSEQ SETUP
+
+    frameRate(24);
+    bblock = width / 21;
+    gui();   //CP5
+    check();  //labels for buttons
+
+    myHouse = new House();
+    tablesetup();
+    wtablesetup();
+    println("setup MIDI");
+
+    try {
+        shedMidi = new ShedMidi();
+    } catch (MidiUnavailableException e) {
+        e.printStackTrace();
+    } catch (InvalidMidiDataException e) {
+        e.printStackTrace();
+    } catch (IOException e) {
+        e.printStackTrace();
     }
 
+//SHEDMIDI_PLACE
+    for (int i = 0; i < 96; i++) {
+        noteStartTimes[i] = i * cellLength;
+    }
+    ms = 60000 / bpm;
+    bpm = 120;
+    ms = 125;
+
+    //INIT
+    instances1[0] = new Test1((bblock/2) + bblock * 10.4f,(bblock*1.2f) + bblock + bblock * (10),(bblock*1.2f) + bblock + bblock * (10), bblock,bblock+bblock*15.5f);
+    // CHANNEL BUTTONS
+    for (int x = 0; x < numchannels; x++) {
+        bbuttons[x] = new BButton((bblock * 1.2f) + bblock + bblock * (1 * x), (bblock / 2) + bblock * 10.4f, bblock * 0.9f, bblock * 0.9f);
+    }
+    for (int x = 0; x < 8; x++) {
+
+        cbuttons[x] = new CButton((bblock * 1.2f) + 4 * bblock + bblock * (x), (bblock / 2) + bblock * 8, bblock * 0.9f, bblock * 0.9f);
+        dbuttons[x] = new DButton((bblock * 1.2f) + 4 * bblock + bblock * (x), (bblock / 2) + bblock * 9, bblock * 0.9f, bblock * 0.9f);
+    }
+    ebuttons[0] = new EButton((bblock * 1.2f) + 2 * bblock + bblock, (bblock / 2) + bblock * 8, bblock * 0.9f, bblock * 0.9f, "save", "savePattern");
+    ebuttons[1] = new EButton((bblock * 1.2f) + 12 * bblock + bblock, (bblock / 2) + bblock * 8, bblock * 0.9f, bblock * 0.9f, "save", "saveFile");
+    ebuttons[2] = new EButton((bblock * 1.2f) + 12 * bblock + bblock, (bblock / 2) + bblock * 9, bblock * 0.9f, bblock * 0.9f, "", "loadFile");
+    ebuttons[3] = new EButton((bblock * 1.2f) + 1 * bblock, (bblock / 2) + bblock * 8, bblock * 0.9f, bblock * 0.9f, "chord", "chord");
+    myHouse.rooms[0].name = "Channel 1";
+    myHouse.rooms[0].wifi = true;
+    myHouse.rooms[0].isDefined = true;
+
+    myHouse.rooms[1].name = "Channel 2";
+    myHouse.rooms[1].wifi = false;
+    myHouse.rooms[1].isDefined = true;
+    myHouse.rooms[1].colour = color(5, 0, 255);
+
+    myHouse.rooms[2].name = "Channel 3";
+    myHouse.rooms[2].wifi = false;
+    myHouse.rooms[2].isDefined = true;
+    myHouse.rooms[2].windows = 5;
+    myHouse.rooms[2].colour = color(5, 210, 255);
+
+    myHouse.rooms[3].name = "Channel 4";
+    myHouse.rooms[3].wifi = false;
+    myHouse.rooms[3].isDefined = true;
+    myHouse.rooms[3].colour = color(5, 0, 255);
+
+    myHouse.rooms[4].name = "Channel 5";
+    myHouse.rooms[4].wifi = false;
+    myHouse.rooms[4].isDefined = true;
+    myHouse.rooms[4].colour = color(5, 0, 255);
+
+    myHouse.rooms[5].name = "Channel 6";
+    myHouse.rooms[5].wifi = false;
+    myHouse.rooms[5].isDefined = true;
+    myHouse.rooms[5].colour = color(5, 0, 255);
+
+    myHouse.rooms[6].name = "Channel 7";
+    myHouse.rooms[6].wifi = false;
+    myHouse.rooms[6].isDefined = true;
+    myHouse.rooms[6].colour = color(5, 0, 255);
+
+    myHouse.rooms[7].name = "Channel 8";
+    myHouse.rooms[7].wifi = false;
+    myHouse.rooms[7].isDefined = true;
+    myHouse.rooms[7].colour = color(5, 0, 255);
+
+    myHouse.rooms[8].name = "Channel 9";
+    myHouse.rooms[8].wifi = false;
+    myHouse.rooms[8].isDefined = true;
+    myHouse.rooms[8].colour = color(5, 0, 255);
+
+    myHouse.rooms[9].name = "Channel 10";
+    myHouse.rooms[9].wifi = false;
+    myHouse.rooms[9].isDefined = true;
+    myHouse.rooms[9].colour = color(5, 0, 255);
+
+
+    for (int i = 0; i < myHouse.rooms.length; i++) {
+        myHouse.rooms[i].buttons[88].x = (bblock * 0.125f);
+        myHouse.rooms[i].buttons[88].y = (bblock / 2) + bblock * 10.4f;
+    }
+
+    buttonset();
+    updateall();
+    saveempty();
+
+
+
+}
     public void draw(){
         background(mychannel * 20 + 20);
         //time=frameCount%61;
@@ -683,15 +762,17 @@ public class Main extends PApplet{
             colorlist.clear();
             d1.clear();
             int i = 0;
+            colorlist.add("Cancel");
+            d1.addItem("Cancel",i+1);
             for ( i = 0; i < files.length; i++) {
                 colorlist.add(files[i].getName());
                 println("Files", "FileName:" + files[i].getName());
 
-                d1.addItem(files[i].getName(), i);
+                d1.addItem(files[i].getName(), i+1);
 
             }
-            colorlist.add("Cancel");
-            d1.addItem("Cancel",i+1);
+
+
             //selectionlist = new KetaiList(this, colorlist);            // TODO HERE SELECTION
         }  // method
 
@@ -710,16 +791,17 @@ public class Main extends PApplet{
             colorlist.clear();
             d1.clear();
 
+            colorlist.add("Cancel");
+            d1.addItem("Cancel",0);
             colorlist.add("NewFile");
-            d1.addItem("New File",0);
+            d1.addItem("New File",1);
             int i = 0;
             for (i = 0; i < files.length; i++) {
                 colorlist.add(files[i].getName());
-                d1.addItem(files[i].getName(),i+1);
+                d1.addItem(files[i].getName(),i+2);
                 println("Files", "FileName:" + files[i].getName());
             }
-            colorlist.add("Cancel");
-            d1.addItem("Cancel",i+2);
+
             //  selectionlist = new KetaiList(this, colorlist);   TODO HERE SELECTION IMPLEMENT
 
         }
@@ -1056,6 +1138,13 @@ public class Main extends PApplet{
         }
         class BButton {
 
+            public void setX(float x,float y,float w,float h) {
+                this.x = x;
+                this.y = y;
+                this.w = w;
+                this.h = h;
+            }
+
             // Button location and size
             float x;
             float y;
@@ -1177,7 +1266,12 @@ public class Main extends PApplet{
 
         }
         class Button {
-
+            public void setX(float x,float y,float w,float h) {
+                this.x = x;
+                this.y = y;
+                this.w = w;
+                this.h = h;
+            }
             // Button location and size
             float x;
             float y;
@@ -1645,7 +1739,12 @@ public class Main extends PApplet{
             myHouse.rooms[9].instances[1].y = map(9, +48, -48, myHouse.rooms[9].instances[1].initialY, myHouse.rooms[9].instances[1].lowerY);
         }
         class CButton {
-
+            public void setX(float x,float y,float w,float h) {
+                this.x = x;
+                this.y = y;
+                this.w = w;
+                this.h = h;
+            }
             // Button location and size
             float x;
             float y;
@@ -1780,7 +1879,12 @@ public class Main extends PApplet{
 
         }
         class DButton {
-
+            public void setX(float x,float y,float w,float h) {
+                this.x = x;
+                this.y = y;
+                this.w = w;
+                this.h = h;
+            }
             // Button location and size
             float x;
             float y;
@@ -1886,7 +1990,12 @@ public class Main extends PApplet{
             }
         }
         class EButton {
-
+            public void setX(float x,float y,float w,float h) {
+                this.x = x;
+                this.y = y;
+                this.w = w;
+                this.h = h;
+            }
             // Button location and size
             float x;
             float y;
@@ -1956,7 +2065,7 @@ public class Main extends PApplet{
                 if ((time < 60) && (sms)) {
                     textSize(bblock / 4);     //   make responsive
                     fill(255, 0, 0);
-                    text(bname, (bblock * 1.2f) + bblock + bblock, (bblock / 2) + bblock * 8.8f);
+                   // text(bname, (bblock * 1.2f) + bblock + bblock, (bblock / 2) + bblock * 8.8f);
                 } else {
                     sms = false;
                 }
@@ -1972,6 +2081,9 @@ public class Main extends PApplet{
 
                     saveit();
                     d1.setVisible(true);
+                    d1.setCaptionLabel("save File...");
+                    Color c = Color.RED;
+                    d1.setColorCaptionLabel(c.getRGB());
                     d1.open();
                     ebuttons[1].on = false;
                 }
@@ -1979,6 +2091,10 @@ public class Main extends PApplet{
                     // Following lists file in a directory
                     mylist();
                     d1.setVisible(true);
+                    d1.setCaptionLabel("load File...");
+                    Color c = Color.GREEN;
+
+                    d1.setColorCaptionLabel(c.getRGB());
                     d1.open();
                     ebuttons[2].on = false;
                 }
@@ -2014,6 +2130,15 @@ public class Main extends PApplet{
 
 
         class Test {
+            public void setX(float x,float y,float w,float h) {
+                this.x = x;
+                this.y = y;
+                this.w = w;
+                this.h = h;
+            }
+
+           
+
             //class vars
             float x;
             float y;
@@ -2059,7 +2184,7 @@ public class Main extends PApplet{
 
                 // display text
                 fill(0);
-                textSize(46);
+                textSize(bblock/1.5f);
                 text(PApplet.parseInt(m1val1), x + 5, y + 15);
                 if (dragged) {
                     over();
@@ -2296,6 +2421,14 @@ public class Main extends PApplet{
         }//end of class
         //CLASS HSLIDER
         class Test1 {
+            public void setX(float x,float y,float w,float h,float o) {
+                this.x = x;
+                this.y = y;
+                this.w = w;
+                this.h = h;
+                this.offset = o;
+                this.initialY = y;
+            }
             //class vars
             float x;
             float y;
@@ -2337,7 +2470,7 @@ public class Main extends PApplet{
 
                 // draw knob
                 fill(200);
-                rect(y, x, h, w);
+                rect(y, x, h, bblock);
 
                 // display text
                 fill(0);
@@ -2595,9 +2728,11 @@ public class Main extends PApplet{
         //String[] appletArgs = new String[] { "Main" };
         String[] processingArgs = {"Main"};
         Main mySketch = new Main();
+//PApplet pa=new PApplet();
 
 
         PApplet.runSketch(processingArgs, mySketch);
+
     }
 
 
