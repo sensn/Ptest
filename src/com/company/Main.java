@@ -15,6 +15,7 @@ import java.io.PrintWriter;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.IOException;
+import java.util.Map;
 //
 import themidibus.*; //Import the library
 
@@ -22,10 +23,17 @@ import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiMessage;
 import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.ShortMessage;
-
 //
+import controlP5.*;
+//
+
 public class Main extends PApplet{
     MidiBus myBus; // The MidiBus
+//
+    ControlP5 cp5;
+    DropdownList d1, d2;
+    int cnt = 0;
+    //
 
     int angle = 0;
     private PApplet sketch;
@@ -97,6 +105,9 @@ public class Main extends PApplet{
     Test1[] instances1 =  new Test1[1];
 //
 
+
+
+
     @Override
     public void settings() {
       //  size(500, 500);
@@ -104,8 +115,116 @@ public class Main extends PApplet{
        // size(640, 360);
         //size(displayWidth, displayHeight);
        fullScreen(2);
+        getpath();
 
     }
+   public  void gui() {
+
+        cp5 = new ControlP5(this);
+        cp5.enableShortcuts();
+
+        cp5 = new ControlP5(this);
+        // create a DropdownList
+        d1 = cp5.addDropdownList("myList-d1")
+               // .setPosition(100, 100)
+                .setPosition((bblock * 1.2f) + 2 * bblock + bblock*12, (bblock / 2) + bblock * 8)
+        .setHeight(bblock*2)
+                .setWidth((int) (bblock*1.5f))
+        .setOpen(false)
+        .setItemHeight((int) (bblock))
+
+       // .setVisible(false)
+        ;
+
+        customize(d1); // customize the first list
+    }
+   public void customize(DropdownList ddl) {
+        // a convenience function to customize a DropdownList
+        ddl.setBackgroundColor(color(190));
+        ddl.setItemHeight(bblock/3);
+        ddl.setBarHeight(30);
+        ddl.setCaptionLabel("Files...");
+       // ddl.cap
+       // ddl.setla
+        /*ddl.captionLabel().set("dropdown");
+        ddl.captionLabel().style().marginTop = 3;
+        ddl.captionLabel().style().marginLeft = 3;
+        ddl.valueLabel().style().marginTop = 3;*/
+
+     /*   for (int i=0;i<40;i++) {
+            ddl.addItem("item "+i, i);
+        }*/
+
+        //ddl.scroll(0);
+
+        ddl.setColorBackground(color(60));
+        ddl.setColorActive(color(255, 128));
+    }
+   public void controlEvent(ControlEvent theEvent) {
+        // DropdownList is of type ControlGroup.
+        // A controlEvent will be triggered from inside the ControlGroup class.
+        // therefore you need to check the originator of the Event with
+        // if (theEvent.isGroup())
+        // to avoid an error message thrown by controlP5.
+
+        if (theEvent.isGroup()) {
+            // check if the Event was triggered from a ControlGroup
+            println("event from group : "+theEvent.getGroup().getValue()+" from "+theEvent.getGroup());
+            System.out.println("EVENT GROUP" );
+        }
+        else if (theEvent.isController()) {
+            println("event from controller : "+theEvent.getController().getValue()+" from "+theEvent.getController());
+            System.out.println("EVENT CONTROLLER" );
+            Map<String,Object> item = d1.getItem((int)theEvent.getController().getValue());
+
+            System.out.println( item.keySet().toString());
+
+            d1.getItem((int)(int)theEvent.getController().getValue()).get("text");
+            System.out.println(  d1.getItem((int)(int)theEvent.getController().getValue()).get("text").toString());
+            selectit(d1.getItem((int)(int)theEvent.getController().getValue()).get("text").toString());
+        }
+    }
+    public void selectit(String selection){
+
+         println(selection);
+         println("LOADFILE BOOL: "+loadfile);
+        if (loadfile){
+            if (selection == "Cancel"){println(selection);
+            d1.setVisible(false);
+            }
+            else {
+                println("LOAD: "+selection);
+                table = loadTable(mypath+"/SENSN/"+selection, "header");
+                tabcentry=0;
+                tableget();
+                updateall();
+                dbuttons[0].on = true;
+                for (int i = 1; i < dbuttons.length; i++) {
+                    dbuttons[i].on = false;}
+                loadfile=false;
+                d1.setVisible(false);
+            }
+        }else{
+          //  if (selection == "NewFile"){
+            if (selection == "New File"){
+                //saveTable(table,"/"+mypath+"/SENSN/abc"+filesl+".csv");}
+                saveTable(table,mypath+"/SENSN/abc"+filesl+".csv");
+                d1.setVisible(false);
+            }
+            else if (selection == "Cancel"){
+                d1.setVisible(false);
+            }
+            else {
+                saveTable(table,mypath+"/SENSN/"+selection);
+                d1.setVisible(false);
+            }
+
+        }
+
+
+    }
+
+
     public void setup() {
         background(102);
         noStroke();
@@ -115,6 +234,7 @@ public class Main extends PApplet{
 
         frameRate(24);
         bblock = width / 21;
+        gui();   //CP5
         check();  //labels for buttons
 
         myHouse = new House();
@@ -561,17 +681,24 @@ public class Main extends PApplet{
             File[] files = directory.listFiles();
             println("Files", "Size: " + files.length);
             colorlist.clear();
-            for (int i = 0; i < files.length; i++) {
+            d1.clear();
+            int i = 0;
+            for ( i = 0; i < files.length; i++) {
                 colorlist.add(files[i].getName());
                 println("Files", "FileName:" + files[i].getName());
+
+                d1.addItem(files[i].getName(), i);
+
             }
             colorlist.add("Cancel");
+            d1.addItem("Cancel",i+1);
             //selectionlist = new KetaiList(this, colorlist);            // TODO HERE SELECTION
         }  // method
 
         public void saveit () {
             loadfile = false;
-            // saveTable(table,"/"+mypath+"/SENSN/abc.csv");
+             //saveTable(table,"/"+mypath+"/SENSN/abc.csv");
+             //saveTable(table,mypath+"/SENSN/abc.csv");
             //  String path = Environment.getExternalStorageDirectory().toString()+"/SENSN";    // TODO HERE PATH
               String path = "./SENSN";    // TODO HERE PATH
             println("Files", "Path: " + path);
@@ -581,12 +708,18 @@ public class Main extends PApplet{
             println("Files", "Size: " + files.length);
             filesl = PApplet.parseInt(files.length);
             colorlist.clear();
+            d1.clear();
+
             colorlist.add("NewFile");
-            for (int i = 0; i < files.length; i++) {
+            d1.addItem("New File",0);
+            int i = 0;
+            for (i = 0; i < files.length; i++) {
                 colorlist.add(files[i].getName());
+                d1.addItem(files[i].getName(),i+1);
                 println("Files", "FileName:" + files[i].getName());
             }
             colorlist.add("Cancel");
+            d1.addItem("Cancel",i+2);
             //  selectionlist = new KetaiList(this, colorlist);   TODO HERE SELECTION IMPLEMENT
 
         }
@@ -1836,13 +1969,17 @@ public class Main extends PApplet{
                     ebuttons[0].on = false;
                 }
                 if (ebuttons[1].on == true) {
-                    saveit();
 
+                    saveit();
+                    d1.setVisible(true);
+                    d1.open();
                     ebuttons[1].on = false;
                 }
                 if (ebuttons[2].on == true) {
                     // Following lists file in a directory
                     mylist();
+                    d1.setVisible(true);
+                    d1.open();
                     ebuttons[2].on = false;
                 }
                 if (ebuttons[3].on == true) {
@@ -1863,13 +2000,15 @@ public class Main extends PApplet{
             }
 
         }
-        public void getpath () {
+        public void getpath() {
 
            // mypath = Environment.getExternalStorageDirectory().getAbsolutePath(); //TODO
             mypath = "./";    //TODO
             println(mypath);
             //--
-            File mydummyFile = new File("/" + mypath + "/SENSN");    //create a directory
+           // File mydummyFile = new File("/" + mypath + "/SENSN");    //create a directory
+            File mydummyFile = new File(  mypath + "/SENSN");    //create a directory
+            System.out.println("MKDIR" + mydummyFile.getPath());
             mydummyFile.mkdirs();
         }
 

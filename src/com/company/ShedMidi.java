@@ -24,11 +24,19 @@ public class ShedMidi {
     // List all available Midi devices on STDOUT. This will show each device's index and name.
     //myBus = new MidiBus(this, 0, 0); // Create a new MidiBus object
     ShortMessage a = new ShortMessage();
+    ShortMessage vol = new ShortMessage(ShortMessage.CONTROL_CHANGE,7,127);
+    ShortMessage rel = new ShortMessage();
+
+
     public ShedMidi() throws MidiUnavailableException, InvalidMidiDataException, IOException {
 
         synthesizer.open();
 
-        Soundbank soundbank = MidiSystem.getSoundbank(file);
+       Soundbank soundbank = MidiSystem.getSoundbank(file);
+        System.out.println( soundbank.getName());
+        System.out.println( soundbank.getDescription());
+        System.out.println( soundbank.getInstruments().toString());
+        System.out.println( soundbank.getResources().toString());
         synthesizer.loadAllInstruments(soundbank);
       // synthRcvr = synthesizer.getReceiver();
 
@@ -106,7 +114,10 @@ public class ShedMidi {
         // post is non-blocking
         try {
          //   inputPort.send(buffer, offset, numBytes);
-            myBus.sendMessage(buffer);
+           // myBus.sendMessage(buffer);
+//a.set
+           // a.setMessage(191, thechannel,  prgnumber );
+           // synthRcvr.send(a,0);          //TODO
            // println("data sent");
             System.out.println( "PRDCHANGE");
         }
@@ -138,8 +149,18 @@ public class ShedMidi {
         // post is non-blocking
         try {
             //inputPort.send(buffer, offset, numBytes);
-            myBus.sendMessage(buffer);
-           // println("data sent");
+           // myBus.sendMessage(buffer);
+            ShortMessage c1 = new ShortMessage(ShortMessage.CONTROL_CHANGE, thechannel, 0,  thebank);   // = 9
+            ShortMessage c2 = new ShortMessage(ShortMessage.CONTROL_CHANGE, thechannel, 32, 0); // = 0
+            ShortMessage c3  = new ShortMessage(ShortMessage.PROGRAM_CHANGE, thechannel, theprg, 0);
+            synthRcvr.send(c1,0);
+            synthRcvr.send(c2,0);
+            synthRcvr.send(c3,0);
+
+//            ... = new ShortMessage(ShortMessage.CONTROL_CHANGE, 0, 0,  1152 >> 7);   // = 9
+//... = new ShortMessage(ShortMessage.CONTROL_CHANGE, 0, 32, 1152 & 0x7f); // = 0
+//... = new ShortMessage(ShortMessage.PROGRAM_CHANGE, 0, 14, 0);
+            // println("data sent");
             System.out.println("BANK: " + thebank +"Prg: " +theprg + "Channel:" +thechannel );
         }
         catch (Exception e) {
@@ -159,7 +180,11 @@ public class ShedMidi {
         // post is non-blocking
         try {
            // inputPort.send(buffer, offset, numBytes);
-            myBus.sendMessage(buffer);
+            //myBus.sendMessage(buffer);
+            vol.setMessage(0x90, thechannel,  7, thevalue);
+            synthRcvr.send(vol,0);          //TODO
+
+
            // println("data sent");
         }
         catch (Exception e) {
