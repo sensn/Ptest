@@ -9,6 +9,11 @@ import processing.core.*;   //Download processing addd
 
 import java.awt.*;
 
+import java.awt.*;
+import java.awt.event.*;
+import controlP5.*;
+
+
 public class Main extends PApplet{
 
     int angle = 0;
@@ -27,10 +32,10 @@ Color c = new Color(123) ;
     @Override
     public void settings() {
       //  size(500, 500);
-       // size(640, 360);
-        size(1280, 720);
+       size(640, 360);
+      //  size(1280, 720);
 
-        //size(displayWidth, displayHeight);
+     //   size(displayWidth, displayHeight);
       //  fullScreen(0);
     }
     public void setup() {
@@ -40,9 +45,26 @@ Color c = new Color(123) ;
 
         gui();
         //frame.setResizable(true);
+        w = width;
+        h = height;
         surface.setResizable(true);
+       // registerMethod("pre", this);
+
 
     }
+
+//    NOTE: the pre() is a special method that will be executed immediately before each call to draw() because we have registered it.
+   public void pre() {
+        if (w != width || h != height) {
+            // Sketch window has resized
+            w = width;
+            h = height;
+            println("RESIZE EVENT");
+          //  ws = "Size = " +w + " x " + h + " pixels";
+            // Do what you need to do here
+        }
+    }
+
     void gui() {
 
         cp5 = new ControlP5(this);
@@ -210,10 +232,21 @@ public    void radio(int theC) {
 	// write your code here
         //String[] appletArgs = new String[] { "Main" };
         String[] processingArgs = {"Main"};
-        Main mySketch = new Main();
+        PWindow win;
+        PWindow1 win1;
+
+        win = new PWindow();
+        win1 = new PWindow1();
+
+        win.setOwin(win1);
+        win1.setOwin(win);
+
+        win.runIt();
+        win1.runIt();
 
 
-        PApplet.runSketch(processingArgs, mySketch);
+        // Main mySketch = new Main();
+        // PApplet.runSketch(processingArgs, mySketch);
 
     }
 
